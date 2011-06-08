@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [[ -z $1 ]]; then
+  echo "USAGE: $0 category/package category/package ...";
+  echo "This script will add the specified package to /etc/portage/package.keywords and sort the file while doing so (also removes duplicate entries)";
+  exit 1;
+fi;
+
+for package in $@; do
+  echo "$package" >> /etc/portage/package.keywords
+done;
+
+tmpfile=`mktemp -t unkey.XXXXXXXXXXX` || exit 1;
+
+sort -u /etc/portage/package.keywords > $tmpfile;
+
+mv $tmpfile /etc/portage/package.keywords
+chgrp portage /etc/portage/package.keywords
+chmod 770 /etc/portage/package.keywords
+
