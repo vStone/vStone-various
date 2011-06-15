@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# Outputs the timestamp of your portage tree in a human readable way.
+date -d "`cat /usr/portage/metadata/timestamp`";
+
