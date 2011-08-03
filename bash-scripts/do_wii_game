@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# This program is free software. It comes without any warranty, to
+# the extent permitted by applicable law. You can redistribute it
+# and/or modify it under the terms of the Do What The Fuck You Want
+# To Public License, Version 2, as published by Sam Hocevar. See
+# http://sam.zoy.org/wtfpl/COPYING for more details. 
+#
+## PREREQUISITES:
+# This script uses the tools found on http://wit.wiimm.de/wit for converting images.
+#
+# CONFIGURATION:
+WII_DISK="/media/Wii/wbfs/";
+# path/to/disk/ID_TITLE/ID.wbfs
+FILENAME="${WII_DISK}%I_%T/%+";
+
+# Manually specify the location to wit if it is not in your PATH.
+WIT="";
+
+if [[  -z ${WIT}  || ! -f ${WIT} ]]; then
+    echo 'Wiimms ISO Tool not found, trying to find location' 1>&2;
+    WIT="`which wit`";
+    if [[ $? != 0 ]]; then
+        echo 'Did you install the Wiimms ISO Tool?' 1>&2;
+        echo 'Install from: http://wit.wiimm.de/wit' 1>&2;
+        exit 1;
+    fi;
+    echo "Using wit: '${WIT}'" 1>&2;
+fi;
+
+## Loop over all your crap, and build the command for use with wit.
+arg="";
+
+for f in "$@"; do 
+    if [[ -f "$f" ]]; then
+#        echo "File: $f";
+        arg="${arg} --source '$f'";
+    else
+        echo "Unknown file: $f";
+    fi;
+done;
+
+cmd="${WIT} COPY -v -v -B -z $arg -D ${FILENAME}";
+eval $cmd;

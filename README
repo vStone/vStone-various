@@ -1,4 +1,5 @@
 Collection of all kind of useful stuff (or not).
 
+bash-scripts/*  -> Simple bash scripts that make my life easier
 gimp-scripts/*  -> Some very simple gimp scripts.
 gentoo/*        -> Various scripts and other (gentoo related)
