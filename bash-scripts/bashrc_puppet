@@ -1,0 +1,46 @@
+function mkpuppetmod () {
+
+  workdir="/etc/puppet/modules"
+
+  if [[ -d ./modules ]]; then
+    workdir="./modules";
+  elif [[ -d ../modules ]]; then
+    workdir="../modules";
+  fi
+
+  mkdir -v -p $workdir/$1/{files,manifests,templates}
+  ## /Template/ (dont forget to escape stuff... ##
+  cat >>$workdir/$1/manifests/init.pp <<EOINITPP
+# Class: $1
+#
+# Description of $1
+#
+class $1 {
+  ## Copy paste snippets:
+  # template("\${module_name}/template.erb")
+  # source => "puppet:///modules/\${module_name}/file"
+}
+EOINITPP
+
+  echo "mkpuppetmod: created init: /etc/puppet/modules/$1/manifets/init.pp"
+  cat >>$workdir/$1/manifests/params.pp <<EOPARAMSPP
+# Class: $1::params
+#
+# Parameters
+#   - \$parameter_name
+#       Parameter description
+class $1::params {
+
+  case \$operatingsystem {
+    debian: {}
+    centos: {}
+    gentoo: {}
+    default: {}
+  }
+
+}
+EOPARAMSPP
+
+  echo "mkpuppetmod: created init: /etc/puppet/modules/$1/manifets/params.pp"
+}
+
