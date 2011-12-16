@@ -1,0 +1,151 @@
+#!/bin/bash
+#
+
+# Usage: terminal_devil 'groupname'
+#
+# Setting up:
+#  Create the file defined in settings_file (~/.terminal_settings)
+#
+# Settings file:
+#  test_terminals="top bottom"
+#  test_bottom="ssh my.remote.server.com"
+#  test_top="cd /path/to/some/folder && bash"
+#  ##test_cmd="custom command to start Terminal."
+#
+# terminal_devil will check what terminals to run (<groupname>_terminals).
+# After this, each terminal is started with the role (<groupname>_<termname>)
+# If a devilspie config file is found, devilspie has been configured and is used.
+# If there is no configuration file but a default one (default_<termname>) one,
+# we will copy this and adjust so it works for role <groupname>_<termname>.
+
+## File containing custom startup commands.
+settings_file=~/.terminal_settings
+
+## Terminals to start.
+default_terminals="topleft bottomleft topright middleright bottomright"
+
+default_terminal_cmd="Terminal --icon /usr/share/icons/Tango/32x32/actions/system-lock-screen.png --default-working-directory ~"
+
+## flag to indicate we need to restart devilspie.
+reload_devilspie=0;
+
+
+start_devilspie() {
+  if pgrep devilspie >/dev/null 2>&1; then
+    echo "devilspie already running (pid: `pgrep devilspie`)"
+  else
+    echo "starting devilspie"
+    devilspie -a >/dev/null 2>&1 &
+  fi
+}
+
+restart_devilspie() {
+  killall devilspie;
+  start_devilspie;
+}
+
+do_term() {
+  local group=$1;
+  local term_name=$2 ## location terminal term_name
+  local role="${group}_${term_name}"; ## Use the default.
+  local terminal_cmd="`grep_opt ${group_terminal_cmd}`";
+  if [ -z "${terminal_cmd}" ]; then
+    terminal_cmd="${default_terminal_cmd}";
+  fi;
+  if [ ! -f ~/.devilspie/${role}.ds ]; then
+    local defrole="default_${term_name}";
+    log "no devilspie definition found for window with role ${role}" 1>&2;
+    if [ -f ~/.devilspie/${defrole}.ds ]; then
+      log "No default role definition found. Create one first (~/.devilspie/${defrole}.ds)"
+    else
+      cp -v ~/.devilspie/${defrole}.ds ~/.devilspie/${role}.ds 1>&2;
+      sed -i "s@${defrole}@${role}@g" ~/.devilspie/${role}.ds 1>&2;
+      reload_devilspie=1;
+    fi
+  fi;
+
+  if role_window_exists $role; then
+    echo "window with role '${role}' is already running'";
+  else
+    cmdargs=""
+    if [ -f $settings_file ]; then
+      cmdargs="`grep_opt ${role}`"
+    fi;
+    if [ -n "${cmdargs}" ]; then
+      $terminal_cmd --role="${role}" -e "/bin/bash -c '$cmdargs'"
+    else
+      $terminal_cmd --role="${role}"
+    fi;
+  fi
+}
+
+role_window_exists() {
+  local find="$1";
+  local windows="`xprop -root | grep ^_NET_CLIENT_LIST\(WINDOW\) | sed -s 's@.*#\(.*\)@\1@'`";
+  local oldifs="$IFS"
+  IFS=', '
+  for window in $windows; do
+    xprop -id $window WM_WINDOW_ROLE | grep -q $find
+    if [ $? == 0 ]; then
+      IFS="$oldifs";
+      return 0;
+    fi;
+  done;
+  IFS="$oldifs"
+  return 1;
+}
+
+grep_opt() {
+  local opt="$1"
+  ## grep option we want, strip option=, strip leading/trailing quote characters.
+  local value=`grep "^${opt}=" $settings_file | sed -e "s@${opt}=@@" -e "s@^['\"]\{1\}@@" -e "s@['\"]\{1\}\\\$@@"`
+  log 'debug' "grep_opt(): Grabbed option '${opt}' from '${settings_file}': '${value}'";
+  echo $value;
+}
+
+## Arguments
+#  $1: 'debug' (optional)
+#  $*: text to echo (if in debug)
+log() {
+  if [ $1 == 'debug' ]; then
+    shift;
+    if [ ! "$DEBUG"x == 'x' ]; then
+      echo "[debug] ${@}" 1>&2;
+    fi;
+  else
+    echo "${@}";
+  fi;
+}
+
+
+## Arguments
+#  $1: group name
+do_terminal_group() {
+  local group=$1;
+  if [ -z $group ]; then
+    group='default';
+  fi
+  local group_terminals="${group}_terminals"
+  local terminals="`grep_opt ${group_terminals}`"
+  log 'debug' "do_terminal_group(): Configured terminals for group '${group}': '$terminals'";
+  if [ -z "$terminals" ]; then
+    terminals="${default_terminals}"
+    log 'debug' "do_terminal_group(): No terminals configured for group '${group}', using default: '${terminals}'";
+  fi;
+  local doterm;
+  for doterm in $terminals; do
+    log 'debug' "do_terminal_group(): doterm -> '$doterm'";
+    do_term $group $doterm
+  done;
+
+
+}
+
+start_devilspie
+do_terminal_group "$1"
+
+if [ $reload_devilspie  == 1 ]; then
+  echo 'Restarting devilspie'
+  restart_devilspie
+fi;
+
