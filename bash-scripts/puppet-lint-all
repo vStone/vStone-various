@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+
+args="${*-.}"
+
+if `puppet-lint --with-filename | grep -q 'no file specified'`; then
+  lint_cmd="puppet-lint --with-filename ";
+else
+  lint_cmd="puppet-lint";
+fi;
+
+puppet_cmd='puppet parser validate ';
+
+run_puppet_check() {
+  local file="$1";
+  eval $puppet_cmd "$file";
+  return $?;
+}
+run_lint_check() {
+  local file="$1"
+  eval $lint_cmd "$file";
+  return $?;
+}
+
+check_erb_file() {
+  local file="$1"
+  erb -x -T '-' "$file" | ruby -c
+  return $?;
+}
+
+check_pp_file() {
+  run_puppet_check "$file" || return $?;
+  run_lint_check "$file";
+  return $?;
+}
+
+
+check_file() {
+  local file=$1 index=$2 count=$3 ext retval;
+  echo " Checking file: '$file' [$index/$count]";
+  ext="`echo $file | sed 's@.*\.\([^.]*\)$@\1@'`"
+  case $ext in
+    pp)   check_pp_file "$file";
+          retval=$?;
+          ;;
+
+    erb)  check_erb_file "$file";
+          retval=$?;
+          ;;
+
+    *)    ;;
+  esac
+  echo " ^ $retval ------------------------------------------------------"
+  return $retval;
+}
+
+index=0;
+count="`find $args -type f | wc -l`"
+find $args -type f | while read line; do let "index++"; check_file $line $index $count; done;
+
