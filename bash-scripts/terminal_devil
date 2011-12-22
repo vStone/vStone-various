@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-
 # Usage: terminal_devil 'groupname'
 #
 # Setting up:
@@ -32,9 +31,9 @@ reload_devilspie=0;
 
 start_devilspie() {
   if pgrep devilspie >/dev/null 2>&1; then
-    echo "devilspie already running (pid: `pgrep devilspie`)"
+    log "devilspie already running (pid: `pgrep devilspie`)"
   else
-    echo "starting devilspie"
+    log "starting devilspie"
     devilspie -a >/dev/null 2>&1 &
   fi
 }
@@ -47,11 +46,24 @@ restart_devilspie() {
 do_term() {
   local group=$1;
   local term_name=$2 ## location terminal term_name
-  local role="${group}_${term_name}"; ## Use the default.
+
+  local group_terminal_cmd="${group}_terminal_cmd";
+  local group_remap="${group}_remap";
+
+  local remap="`grep_opt ${group_remap}`";
+  local role="${group}_${term_name}";
+  if [ "${remap}"x == 'x' ]; then
+    role_cmd="${role}";
+  else
+    role_cmd="${remap}_${term_name}";
+    log 'debug' "Remapping role command to ${role_cmd}";
+  fi
+
   local terminal_cmd="`grep_opt ${group_terminal_cmd}`";
   if [ -z "${terminal_cmd}" ]; then
     terminal_cmd="${default_terminal_cmd}";
   fi;
+
   if [ ! -f ~/.devilspie/${role}.ds ]; then
     local defrole="default_${term_name}";
     log "no devilspie definition found for window with role ${role}" 1>&2;
@@ -67,9 +79,9 @@ do_term() {
   if role_window_exists $role; then
     echo "window with role '${role}' is already running'";
   else
-    cmdargs=""
+    local cmdargs=""
     if [ -f $settings_file ]; then
-      cmdargs="`grep_opt ${role}`"
+      cmdargs="`grep_opt ${role_cmd}`";
     fi;
     if [ -n "${cmdargs}" ]; then
       $terminal_cmd --role="${role}" -e "/bin/bash -c '$cmdargs'"
@@ -107,7 +119,7 @@ grep_opt() {
 #  $1: 'debug' (optional)
 #  $*: text to echo (if in debug)
 log() {
-  if [ $1 == 'debug' ]; then
+  if [ "$1"x == 'debugx' ]; then
     shift;
     if [ ! "$DEBUG"x == 'x' ]; then
       echo "[debug] ${@}" 1>&2;
