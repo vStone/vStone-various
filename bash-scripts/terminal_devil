@@ -78,6 +78,7 @@ do_term() {
 
   if role_window_exists $role; then
     echo "window with role '${role}' is already running'";
+    reload_devilspie=1;
   else
     local cmdargs=""
     if [ -f $settings_file ]; then
