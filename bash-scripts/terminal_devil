@@ -27,7 +27,8 @@ default_terminal_cmd="Terminal --icon /usr/share/icons/Tango/32x32/actions/syste
 
 ## flag to indicate we need to restart devilspie.
 reload_devilspie=0;
-
+maybe_reload_devilspie=0;
+created_window=0;
 
 start_devilspie() {
   if pgrep devilspie >/dev/null 2>&1; then
@@ -78,12 +79,13 @@ do_term() {
 
   if role_window_exists $role; then
     echo "window with role '${role}' is already running'";
-    reload_devilspie=1;
+    maybe_reload_devilspie=1;
   else
     local cmdargs=""
     if [ -f $settings_file ]; then
       cmdargs="`grep_opt ${role_cmd}`";
     fi;
+    created_window=1;
     if [ -n "${cmdargs}" ]; then
       $terminal_cmd --role="${role}" -e "/bin/bash -c '$cmdargs'"
     else
@@ -157,7 +159,7 @@ do_terminal_group() {
 start_devilspie
 do_terminal_group "$1"
 
-if [ $reload_devilspie  == 1 ]; then
+if [[ $reload_devilspie  == 1  || ( $maybe_reload_devilspie == 1 && $created_window == 0 ) ]]; then
   echo 'Restarting devilspie'
   restart_devilspie
 fi;
