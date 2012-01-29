@@ -1,19 +1,132 @@
-function mkpuppetmod () {
+find_dir_up() {
+  local name=$1;
+  local default="$2";
+  local required="$3";
 
-  workdir="/etc/puppet/modules"
+  if [ -d "./${name}" ]; then
+    echo "./${name}"; return 0;
+  else
+    local path="../${name}"
+    local loop=0;
+    local realpath;
+
+    while [ $loop -eq 0 ]; do
+      realpath="`readlink -f $path`";
+      if [ "${realpath}" == "/${name}" ]; then
+        loop=1;
+      fi;
+      if [ -d $path ]; then
+        if [[ -z $required || "$realpath" == */$required/* ]]; then
+          loop=1;
+          echo "${path}"; return;
+        fi;
+      fi;
+      path="../${path}"
+    done;
+  fi;
+  if [ -n $default ]; then
+    echo "$default";
+  fi;
+
+}
+
+detect_module_dir() {
+  find_dir_up 'modules' '/etc/puppet/modules'
+}
+
+detect_manifests_dir() {
+  find_dir_up 'manifests' "`pwd`" "modules"
+}
+
+detect_class_name() {
+  local name="$1"
+  local manifests="`find_dir_up 'manifests' '_FAILTRAIN_' 'modules'`";
+  if [[ "$manifests"x == '_FAILTRAIN_x' ]]; then
+    echo $name; return 0;
+  fi;
+  local manifests_path="`readlink -f $manifests`";
+  local modulename="`pwd | sed 's@.*/modules/\([^/]\+\)/manifests.*@\1@'`";
+  if [[ "${modulename}"x == `pwd`x ]]; then
+    echo "You are in the wrong folder!  cd $manifests_path" 1>&2
+    return 13;
+  fi;
+  if `pwd | grep -q "${modulename}/manifests/.*"`; then
+    modulename=`pwd | sed -e "s@.*/modules/\([^/]\+\)/manifests/\(.*\)@\1::\2@" -e "s@/@::@g"`
+  fi;
+  if [ "$name"x == 'initx' ]; then
+    echo "${modulename}"
+  else
+    echo "${modulename}::${name}"
+  fi;
+}
+
+mkpuppetclass() {
+  local name="$1";
+  if [[ -z $name ]]; then
+    echo "Failed! you need to supply a name!";
+    return 1;
+  fi;
+  if `echo "${name}" | grep -q "\.pp\$"`; then
+    file="${name}";
+    name="`echo ${name} | sed 's@\.pp$@@'`";
+  fi;
+
+  classname="`detect_class_name ${name}`";
+  if [ $? == 13 ]; then
+    classname="${name}"
+  fi;
+  local file="${name}.pp"
+
+  cat >>$file << EOCLASS
+# = Class: $classname
+#
+# Description of $classname
+#
+# == Parameters:
+#
+# \$param::   Description of parameter
+#
+# == Actions:
+#
+# == Requires:
+#
+# == Sample Usage:
+#
+class $classname {
+  ## Copy paste snippets:
+  # template("\${module_name}/template.erb")
+  # source => "puppet:///modules/\${module_name}/file"
+}
+
+EOCLASS
+
+}
+
+mkpuppetmod () {
+
 
   if [[ -d ./modules ]]; then
     workdir="./modules";
   elif [[ -d ../modules ]]; then
     workdir="../modules";
+  else
+    workdir="/etc/puppet/modules"
   fi
 
   mkdir -v -p $workdir/$1/{files,manifests,templates}
   ## /Template/ (dont forget to escape stuff... ##
   cat >>$workdir/$1/manifests/init.pp <<EOINITPP
-# Class: $1
+# == Class: $1
 #
 # Description of $1
+#
+# === Parameters:
+#
+# === Actions:
+#
+# === Requires:
+#
+# === Sample Usage:
 #
 class $1 {
   ## Copy paste snippets:
@@ -22,7 +135,7 @@ class $1 {
 }
 EOINITPP
 
-  echo "mkpuppetmod: created init: /etc/puppet/modules/$1/manifets/init.pp"
+  echo "mkpuppetmod: created init: $workdir/$1/manifets/init.pp"
   cat >>$workdir/$1/manifests/params.pp <<EOPARAMSPP
 # Class: $1::params
 #
@@ -41,6 +154,32 @@ class $1::params {
 }
 EOPARAMSPP
 
-  echo "mkpuppetmod: created init: /etc/puppet/modules/$1/manifets/params.pp"
+  echo "mkpuppetmod: created init: $workdir/$1/manifets/params.pp"
+}
+
+reformat_pp_file() {
+  if [ -f "$1" ]; then
+    pp_fix_tabs $1;
+    pp_strip_trailing_whitespaces $1;
+    pp_reformat_quotes $1;
+  else
+    echo "File '$1' not found.";
+    return 1;
+  fi
+}
+
+pp_fix_tabs() {
+  sed -i "s@\t@  @g" $1
+}
+
+pp_strip_trailing_whitespaces() {
+  sed -i "s@\s*\$@@g" $1
+}
+
+pp_reformat_quotes() {
+  local f=$1;
+  if [ -f $f ]; then
+    sed -i "s@^\([^']*\)\"\([^\"$]\+\)\"\([^']*\)\$@\1'\2'\3@g" $f;
+  fi;
 }
 
