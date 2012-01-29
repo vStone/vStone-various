@@ -55,6 +55,6 @@ check_file() {
 }
 
 index=0;
-count="`find $args -type f | wc -l`"
-find $args -type f | while read line; do let "index++"; check_file $line $index $count; done;
+count="`find $args -type f -iname '*.pp' -or -iname '*.erb' | wc -l`"
+find $args -type f -iname '*.pp' -or -iname '*.erb'  | while read line; do let "index++"; check_file $line $index $count; done;
 
