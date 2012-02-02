@@ -1,0 +1,25 @@
+#!/bin/bash
+PREVIOUS="\033[1A\033[K";
+
+COUNTDOWN_SOUND="/usr/share/sounds/info.wav";
+PRESS_SOUND="/usr/share/sounds/question.wav";
+ALERT_SOUND="/usr/share/sounds/purple/alert.wav";
+
+cycle() {
+  local i=10;
+  while [ $i -gt 0 ]; do shht "$i"; let "i--"; done;
+  mplayer "${ALERT_SOUND}" >/dev/null 2>&1 &
+}
+
+shht() {
+  echo -e "${PREVIOUS}${1}";
+  [ $1 -lt 6 ] && mplayer "${COUNTDOWN_SOUND}" >/dev/null 2>&1 &
+  sleep 1;
+}
+
+echo -e "Press reset button in\n";
+shht 5; shht 4; shht 3; shht 2; shht 1; echo -e "PRESS and hold!\n";
+mplayer "${PRESS_SOUND}" >/dev/null 2>&1 &
+cycle; echo -e "Unplug power (still hold!)\n";
+cycle; echo -e "Plug power (still hold!)\n";
+cycle; echo 'Release';
