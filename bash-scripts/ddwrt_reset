@@ -6,7 +6,7 @@ PRESS_SOUND="/usr/share/sounds/question.wav";
 ALERT_SOUND="/usr/share/sounds/purple/alert.wav";
 
 cycle() {
-  local i=10;
+  local i=30;
   while [ $i -gt 0 ]; do shht "$i"; let "i--"; done;
   mplayer "${ALERT_SOUND}" >/dev/null 2>&1 &
 }
