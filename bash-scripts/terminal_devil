@@ -87,9 +87,9 @@ do_term() {
     fi;
     created_window=1;
     if [ -n "${cmdargs}" ]; then
-      $terminal_cmd --role="${role}" -e "/bin/bash -c '$cmdargs'"
+      $terminal_cmd --role="${role}" -e "/bin/bash -c '$cmdargs'" &
     else
-      $terminal_cmd --role="${role}"
+      $terminal_cmd --role="${role}" &
     fi;
   fi
 }
