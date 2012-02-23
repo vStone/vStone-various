@@ -1,5 +1,5 @@
 svn_prompt() {
-  if [ -d ".svn" ]; then
+  if svn info . >/dev/null 2>&1; then
     local branch dirty rev info=$(svn info 2>/dev/null)
 
     branch=$(svn_parse_branch "$info")
