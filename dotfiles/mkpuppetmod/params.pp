@@ -4,27 +4,48 @@
 #
 # == Parameters:
 #
-# $param::   description of parameter. default value if any.
+# $package::  Overrides the packages to be installed. Defaults to os specific.
 #
 # == Sample Usage:
 #
 #   class {'%class':
-#     param => 'value'
+#     packages => 'value'
 #   }
 #
 class %class (
-  $param = undef
+  $packages = undef
 ){
-  ## Copy paste snippets:
-  # template("${module_name}/template.erb")
-  # source => "puppet:///modules/${module_name}/file"
 
-  $parameter = $param ? {
+  #####################################
+  #             Packages              #
+  #####################################
+  $pkgs = $packages ? {
     undef   => $::operatingsystem ? {
-
+      /(?i:centos|redhat)/ => ['%module'],
+      /(?i:ubuntu|debian)/ => ['%module'],
+      default              => ['%module'],
     },
-    default => $param,
+    default => $packages,
   }
+
+  #####################################
+  #             Service               #
+  #####################################
+  $service_name = $::operatingsystem ? {
+    /(?i:centos|redhat)/ => '%module',
+    /(?i:ubuntu|debian)/ => '%module',
+    default              => '%module',
+  }
+  $service_path = $::operatingsystem ? {
+    default              => '/etc/init.d',
+  }
+  $service_hasrestart = $::operatingsystem ? {
+    default              => true,
+  }
+  $service_hasstatus = $::operatingsystem ? {
+    default              => true,
+  }
+
 
 }
 

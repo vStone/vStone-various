@@ -14,8 +14,7 @@
 #
 #
 class %class {
-  ## Copy paste snippets:
-  # template("${module_name}/template.erb")
-  # source => "puppet:///modules/${module_name}/file"
+  include %module::packages
+  include %module::service
 }
 

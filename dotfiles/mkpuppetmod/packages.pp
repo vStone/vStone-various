@@ -18,8 +18,9 @@ class %class {
 
   require %module::params
 
-  package {$%module::params::packages:
+  package {$%module::params::pkgs:
     ensure => 'installed',
+    alias  => '%module',
   }
 
 }
