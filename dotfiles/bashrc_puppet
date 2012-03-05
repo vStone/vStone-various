@@ -146,6 +146,10 @@ mkpuppetmod () {
   cwd=`pwd`
   cd $workdir/$name/manifests
   mkpuppetclass init
+  mkpuppetclass params
+  mkpuppetclass packages
+  mkpuppetclass service
+  mkdir service && cd service && mkpuppetclass disabled
   cd $cwd;
 }
 
