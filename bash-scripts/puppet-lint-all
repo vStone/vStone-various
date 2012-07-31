@@ -29,8 +29,8 @@ check_erb_file() {
 }
 
 check_pp_file() {
-  run_puppet_check "$file" || return $?;
-  run_lint_check "$file";
+  run_puppet_check "$file" 2>/dev/null || return $?;
+  run_lint_check "$file" 2>/dev/null;
   return $?;
 }
 
