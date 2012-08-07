@@ -1,0 +1,19 @@
+## Contains an example prompt with git and svn support.
+
+GIT_PS1_SHOWDIRTYSTATE=true
+SVN_PS1_SHOWDIRTYSTATE=true
+SVN_PS1_SHOWREV=true
+
+source ~/.bashrc_git
+source ~/.bashrc_svn
+
+green=$( tput setaf 2 );
+blue=$( tput setaf 4 );
+cyan=$( tput setaf 6 );
+bgreen=$( tput setaf 2; tput bold );
+bblue=$( tput setaf 4; tput bold );
+bcyan=$( tput setaf 6; tput bold );
+
+reset=$( tput sgr0 );
+
+PS1='\[$bgreen\]\u@\h\[$bblue\] \w\[$reset\]\[$reset\]$(__svn_ps1 " \[$bcyan\][ svn: %s ]\[$reset\]")$(__git_ps1_remotes " \[$bcyan\][git: \[$reset\]%s \[$bcyan\]|\[$reset\] " "%s" "\[$green\]%s\[$reset\]" " \[$bcyan\][git: ")$(__git_ps1 "\[\033[01;36m\]%s ]\[\033[00m\]") \[\033[01;34m\]\$\[\033[00m\] '

@@ -1,0 +1,49 @@
+# To show dirty status, use SVN_PS1_SHOWDIRTYSTATE=true
+# To show revision number, use SVN_PS1_SHOWREV=true
+
+## USAGE: __svn_ps1 <printf format>.
+# The printf format defaults to '( %s)'
+__svn_ps1() {
+  if svn info . >/dev/null 2>&1; then
+    local branch dirty rev info=$(svn info 2>/dev/null)
+    branch=$(__svn_parse_branch "$info")
+    # Uncomment if you want to display the current revision.
+    [ "$SVN_PS1_SHOWREV" == "true" ] && \
+      rev=":r$(echo "$info" | awk '/^Revision: [0-9]+/{print $2}')";
+    # Uncomment if you want to display whether the repo is 'dirty.' In some
+    # cases (on large repos) this may take a few seconds, which can
+    # noticeably delay your prompt after a command executes.
+    [ "$SVN_PS1_SHOWDIRTYSTATE" == "true" ] && \
+      [ "$(svn status)" ] && dirty='*'
+
+    [ "$branch" ] || branch="trunk?";
+    if [ "$branch" != "" ] ; then
+      printf "${1:-( %s)}" "${branch}${rev}${dirty}"
+    fi
+  fi
+}
+
+# Returns the current branch or tag name from the given `svn info` output
+__svn_parse_branch() {
+  local chunk url=$(echo "$1" | awk '/^URL: .*/{print $2}')
+
+  echo $url | grep -q "/trunk\b"
+  if [ $? -eq 0 ] ; then
+    echo trunk
+    return
+  else
+    chunk=$(echo $url | grep -o "/releases.*")
+    if [ "$chunk" == "" ] ; then
+      chunk=$(echo $url | grep -o "/branches.*")
+      if [ "$chunk" == "" ] ; then
+        chunk=$(echo $url | grep -o "/tags.*")
+      fi
+    fi
+  fi
+  echo $chunk | awk -F/ '{print $3}'
+}
+
+## Example PS1 Prompt.
+PS1='\u@\h \w\[$(tput sgr0 )\]$(__svn_ps1 " \[$(tput setaf 6; tput bold )\][ svn: %s ]\[$(tput sgr0 )\]") $ ';
+
+# vim: set tabstop=2 expandtab syntax=sh:

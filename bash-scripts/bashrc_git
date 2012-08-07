@@ -1,0 +1,69 @@
+## This script implies that you have git bash completion and git prompt magic scripts in place.
+
+
+## USAGE: __git_ps1_remotes <println> <printr> <printa> <printn>
+# println: This printf is used to print the complete result. defaults to ' (%s)'
+# printr:  printf used to print a remote.  defaults to '%s'
+# printa:  printf used to print the active/default remote. defaults to '%s'
+# printn:  printf used when no remotes are defined. defaults to ''
+__git_ps1_remotes() {
+  local g="$(__gitdir)"
+  local println="${1:- (%s)}"
+  local printr="${2:-%s}"
+  local printa="${3:-%s}"
+  local printn="${4}"
+  local p="";
+  if [ -n "$g" ]; then
+    local remotes="$(git remote)";
+    local b="$(git symbolic-ref HEAD 2>/dev/null)";
+    if [[ -z $b ]]; then
+      b='unknown';
+    fi;
+    b="${b##refs/heads/}";
+    br="$(git config --get branch.$b.remote)";
+    for r in $remotes; do
+      count="$(git rev-list --count --left-right "$r/$b"...HEAD 2>/dev/null | sed 's@[ \t]\+@ @g' )"
+      diff=""
+      case "$count" in
+        "")       # no upstream
+                  diff="" ;;
+        "0 0")   # equal to upstream
+                  diff="" ;;
+        "0 "*)   # ahead of upstream
+                  diff="+${count#0 }" ;;
+        *" 0")   # behind upstream
+                  diff="-${count% 0}" ;;
+        *)        # diverged from upstream
+                  diff="+${count#* }-${count% *}" ;;
+      esac
+
+      if [[ "$br"x == "$r"x ]]; then
+        p="${p}$( printf -- "${printa}${diff}" "$r") ";
+      else
+        p="${p}$( printf -- "${printr}${diff}" "$r") ";
+      fi;
+    done;
+    if [ "$p" ]; then
+      printf -- "$println" "${p%% }";
+    else
+      printf -- "$printn";
+    fi;
+  fi
+
+}
+
+green=$( tput setaf 2 );
+blue=$( tput setaf 4 );
+cyan=$( tput setaf 6 );
+
+bgreen=$( tput setaf 2; tput bold );
+bblue=$( tput setaf 4; tput bold );
+bcyan=$( tput setaf 6; tput bold );
+
+reset=$( tput sgr0 );
+
+## Example prompt with fancy colors
+
+PS1='\[$bgreen\]\u@\h\[$bblue\] \w\[$reset\]$(__git_ps1_remotes " \[$bcyan\][git: \[$reset\]%s \[$bcyan\]|\[$reset\] " "%s" "\[$green\]%s\[$reset\]" " \[$bcyan\][git: ")$(__git_ps1 "\[\033[01;36m\]%s ]\[\033[00m\]") \[\033[01;34m\]\$\[\033[00m\] '
+
+# vim: set tabstop=2 expandtab syntax=sh:
