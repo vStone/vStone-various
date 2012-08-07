@@ -31,3 +31,7 @@ __git_ps1 and see if you get a 'command not found'.
 ## combined git and svn prompt
 
 An example can be found in bashrc_prompt.
+
+The result is a little something like:
+
+<span style="font-weight: bold; color: green;">jan@membrane</span> ~/Projects/github/vStone-various/bash-scripts [git: origin | master * ] $
