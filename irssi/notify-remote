@@ -1,0 +1,15 @@
+#!/bin/bash
+
+##
+delay="10000"
+icon="security-high" ## gtk-dialog-info
+
+read line
+summary="${line}"
+read line
+msg="$line"
+read line
+
+notify-send -i $icon -t "$delay" -- "$summary" "$msg"
+
+exit 0;
