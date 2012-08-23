@@ -1,6 +1,12 @@
 #!/bin/bash
 #
 
+color_warn=$( tput setaf 3; tput bold );
+color_err=$( tput setaf 1; tput bold );
+
+reset=$( tput sgr0 );
+
+
 args="${*-.}"
 
 if `puppet-lint --with-filename | grep -q 'no file specified'`; then
@@ -18,7 +24,7 @@ run_puppet_check() {
 }
 run_lint_check() {
   local file="$1"
-  eval $lint_cmd "$file";
+  eval $lint_cmd "$file" | sed -e "s/\(.*WARNING.*\)/${color_warn}\1$reset/" -e "s/\(.*ERROR.*\)/${color_err}\1$reset/"  ;
   return $?;
 }
 
