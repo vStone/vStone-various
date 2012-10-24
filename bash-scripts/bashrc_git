@@ -49,7 +49,22 @@ __git_ps1_remotes() {
       printf -- "$printn";
     fi;
   fi
+}
 
+__git_ps1_flow() {
+  local g="$(__gitdir)"
+  if [ -n "$g" ]; then
+    local flow=$( git config --get gitflow.branch.master )
+    local has_dev=$( git branch -a | grep -o "develop" )
+
+    if [ "$flow" != "" ]; then
+      echo "git-flow";
+    elif [ "$has_dev" != "" ]; then
+      echo "git-flow???"
+    else
+      echo "git"
+    fi;
+  fi;
 }
 
 green=$( tput setaf 2 );
@@ -64,6 +79,6 @@ reset=$( tput sgr0 );
 
 ## Example prompt with fancy colors
 
-PS1='\[$bgreen\]\u@\h\[$bblue\] \w\[$reset\]$(__git_ps1_remotes " \[$bcyan\][git: \[$reset\]%s \[$bcyan\]|\[$reset\] " "%s" "\[$green\]%s\[$reset\]" " \[$bcyan\][git: ")$(__git_ps1 "\[\033[01;36m\]%s ]\[\033[00m\]") \[\033[01;34m\]\$\[\033[00m\] '
+PS1='\[$bgreen\]\u@\h\[$bblue\] \w\[$reset\]$(__git_ps1_remotes " \[$bcyan\][$(__git_ps1_flow): \[$reset\]%s \[$bcyan\]|\[$reset\] " "%s" "\[$green\]%s\[$reset\]" " \[$bcyan\][$(__git_ps1_flow): ")$(__git_ps1 "\[$bcyan\]%s ]\[$reset\]") \[$bblue\]\$\[$reset\] '
 
 # vim: set tabstop=2 expandtab syntax=sh:
