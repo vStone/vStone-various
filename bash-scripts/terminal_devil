@@ -23,7 +23,8 @@ settings_file=~/.terminal_settings
 ## Terminals to start.
 default_terminals="topleft bottomleft topright middleright bottomright"
 
-default_terminal_cmd="Terminal --icon /usr/share/icons/Tango/32x32/actions/system-lock-screen.png --default-working-directory ~"
+default_terminal_cmd="Terminal --default-working-directory ~"
+default_terminal_icon="/usr/share/icons/Tango/32x32/actions/system-lock-screen.png"
 
 ## flag to indicate we need to restart devilspie.
 reload_devilspie=0;
@@ -45,11 +46,18 @@ restart_devilspie() {
 }
 
 do_term() {
+  log 'debug' "do_term()"
   local group=$1;
+  log 'debug' "+ group=$group"
   local term_name=$2 ## location terminal term_name
+  log 'debug' "+ term_name=$term_name"
 
   local group_terminal_cmd="${group}_terminal_cmd";
+  log 'debug' "+ group_terminal_cmd=$group_terminal_cmd"
+  local group_terminal_icon="${term_name}_icon";
+  log 'debug' "+ group_terminal_icon=$group_terminal_icon"
   local group_remap="${group}_remap";
+  log 'debug' "+ group_remap=$group_remap"
 
   local remap="`grep_opt ${group_remap}`";
   local role="${group}_${term_name}";
@@ -61,8 +69,14 @@ do_term() {
   fi
 
   local terminal_cmd="`grep_opt ${group_terminal_cmd}`";
+  local term_icon="`grep_opt ${group_terminal_icon}`";
   if [ -z "${terminal_cmd}" ]; then
     terminal_cmd="${default_terminal_cmd}";
+    if [ -n "${term_icon}" ]; then
+      terminal_cmd="${terminal_cmd} --icon ${term_icon}";
+    else
+      terminal_cmd="${terminal_cmd} --icon ${default_terminal_icon}";
+    fi;
   fi;
 
   if [ ! -f ~/.devilspie/${role}.ds ]; then
@@ -86,6 +100,7 @@ do_term() {
       cmdargs="`grep_opt ${role_cmd}`";
     fi;
     created_window=1;
+    log 'debug' "== terminal_cmd: ${terminal_cmd}";
     if [ -n "${cmdargs}" ]; then
       $terminal_cmd --role="${role}" -e "/bin/bash -c '$cmdargs'" &
     else
