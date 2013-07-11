@@ -3,13 +3,15 @@
 ##
 delay="10000"
 icon="security-high" ## gtk-dialog-info
+appname="Irssi"
 
 read line
 summary="${line}"
 read line
-msg="$line"
+msg="${line}"
+read line
 read line
 
-notify-send -i $icon -t "$delay" -- "$summary" "$msg"
+notify-send -a $appname -i $icon -t "$delay" -- "$summary" "$msg" >/dev/null 2>&1
 
 exit 0;
