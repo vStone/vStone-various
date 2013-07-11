@@ -52,17 +52,13 @@ sub notify {
     my $port = Irssi::settings_get_str($IRSSI{'name'} . '_port');
 
     return if ! is_port_owner($port, $<);
-    
+
     # check for being away in every server?
     return if $server->{usermode_away} &&
               (Irssi::settings_get_bool($IRSSI{'name'} . '_if_away') == 0);
-
     # XXX test for other means of doing TCP
-    #print("echo '$summary\n$message\n\n' | /bin/nc 127.0.0.1 $port");
     system("echo '$summary\n$message\n\n' | /bin/nc 127.0.0.1 $port &");
-
 }
-
 
 sub test_text_notify {
     my ($data,$server,$item) = @_;
@@ -78,7 +74,7 @@ sub print_text_notify {
     $sender =~ s/^\<.([^\>]+)\>.+/\1/ ;
     $stripped =~ s/^\<.[^\>]+\>.// ;
     my $summary = "Message on $dest->{target}";
-    notify($server, $summary, $stripped);
+    notify($server, $summary, "[$sender] $stripped");
 }
 
 sub message_private_notify {
@@ -102,3 +98,5 @@ Irssi::signal_add('message private', 'message_private_notify');
 Irssi::signal_add('dcc request', 'dcc_request_notify');
 Irssi::command_bind('rnotify', 'test_text_notify');
 # vim: et
+
+
