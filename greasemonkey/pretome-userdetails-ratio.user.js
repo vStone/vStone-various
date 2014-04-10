@@ -18,12 +18,19 @@ var totalDataString = text.split('|')[0];
 var pattern = /([0-9.]+) ([TG]B) \(([0-9.]+) ([TG]B) total\)/;
 var values = totalDataString.match(pattern);
 
+var ratioSpan;
+
 // Add our new element into the dom.
-var ratioSpan = document.createElement('span');
-ratioSpan.setAttribute('id', 'custom_ratio_box');
 if (! document.getElementById('custom_ratio_box')) {
+  ratioSpan = document.createElement('span');
+  ratioSpan.setAttribute('id', 'custom_ratio_box');
   element.appendChild(ratioSpan);
 }
+else {
+  ratioSpan = document.getElementById('custom_ratio_box');
+}
+
+
 var result = "Unknown";
 
 if (values == null) {
