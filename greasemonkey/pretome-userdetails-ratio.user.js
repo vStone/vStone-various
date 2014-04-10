@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        pretome - userdetails calculate ratio
-// @namespace   http://vstone.eu/greasemonkey/pretome-userdetails-ratio/
+// @namespace   http://vstone.eu/greasemonkey/
 // @description Displays the ratio on the userdetails page.
 // @include     https://pretome.info/userdetails.php?id=*
 // @version     0.1
