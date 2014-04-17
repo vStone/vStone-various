@@ -1,4 +1,5 @@
 Helper script to execute gitolite commands on the current repo.
+Copy to your git-core directory (/usr/libexec/git-core/
 
 
 For help:
