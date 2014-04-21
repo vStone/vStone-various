@@ -2,8 +2,8 @@
 // @name        pretome - HnR status
 // @namespace   http://vstone.eu/greasemonkey/
 // @include     https://pretome.info/usertorrents.php?id=*
-// @version     0.1.1
-// @grant       none
+// @version     0.1.2
+// @grant       GM_getValue
 // ==/UserScript==
 
 // minimum required ratio
@@ -11,12 +11,19 @@ var PRETOME_MIN_RATIO = 0.8;
 // OR minimum required seed time.
 var PRETOME_MIN_SEED = 60.0;
 
-
-var HNR_OK_ROW1 = "#A9E6A7";
-var HNR_OK_ROW2 = "#93C490";
-var HNR_NOT_OK_ROW1 = "#E6A8A7";
-var HNR_NOT_OK_ROW2 = "#C49095";
-
+var RAINBOW = {"defaults": {
+       "hnr_ok_row1": "#A9E6A7",
+       "hnr_nok_row1": "#E6A8A7",
+       "hnr_ok_row2": "#93C490",
+       "hnr_nok_row2": "#C49095"
+    },
+    "WinterHoliday08": {
+       "hnr_ok_row1": "#A9E6A7",
+       "hnr_nok_row1": "#E6A8A7",
+       "hnr_ok_row2": "#93C490",
+       "hnr_nok_row2": "#C49095"
+    }
+}
 
 var R_MIN = 1;
 var R_SEC = 2;
@@ -24,6 +31,38 @@ var R_DAY = 3;
 var R_HOUR = 4;
 var R_MIN2 = 5;
 var R_SEC2 = 6;
+
+function detect_pretome_theme() {
+  var xpath = '//link[contains(@href, "/themes/") and @type= "text/css"]';
+  var snapResults = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+  var css = snapResults.snapshotItem(0);
+  var re = /\/themes\/([^\/]+)\//;
+  if (css) {
+    var theme = re.exec(css.href)
+    return theme[1];
+  }
+  else {
+    return false
+  }
+}
+var pretome_theme = detect_pretome_theme();
+
+function get_color(type, theme) {
+    var key = "pretome.theme." + theme + "." + type;
+    if (RAINBOW[theme]) {
+        var theme = RAINBOW[theme];
+        script_default = (theme[type] ? theme[type] : RAINBOW["defaults"][type])
+    } else {
+       script_default = RAINBOW["defaults"][type] ;
+    }
+    return GM_getValue(key, script_default);
+}
+
+
+var HNR_OK_ROW1 = get_color("hnr_ok_row1", pretome_theme);
+var HNR_OK_ROW2 = get_color("hnr_ok_row2", pretome_theme);
+var HNR_NOT_OK_ROW1 = get_color("hnr_nok_row1", pretome_theme);
+var HNR_NOT_OK_ROW2 = get_color("hnr_nok_row2", pretome_theme);
 
 function time_to_hours(time) {
     var regex = /(?:([0-9]+)m and ([0-9]+)s)|(?:(?:([0-9]+)[d] )?([0-9]{1,2}):([0-9]{2}):([0-9]{2}))/;
