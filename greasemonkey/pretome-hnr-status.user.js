@@ -2,7 +2,7 @@
 // @name        pretome - HnR status
 // @namespace   http://vstone.eu/greasemonkey/
 // @include     https://pretome.info/usertorrents.php?id=*
-// @version     0.1
+// @version     0.1.1
 // @grant       none
 // ==/UserScript==
 
@@ -50,7 +50,7 @@ function time_to_hours(time) {
     return time_in_hours;
 }
 
-var snapResults = document.evaluate('//h1[contains(text(), "Download History for ")]/..//table',
+var snapResults = document.evaluate('//h1[contains(text(), "Download History for ")]/..//table|//h1[contains(text(), "Download History for ")]/../../..//table',
 	document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
 var C_RATIO = 3;
