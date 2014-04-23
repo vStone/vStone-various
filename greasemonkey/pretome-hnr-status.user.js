@@ -144,7 +144,7 @@ function get_color(type, theme) {
 
     if (RAINBOW[theme]) {
         data = RAINBOW[theme];
-        script_default = (data[type] !== null ? data[type] : RAINBOW.defaults[type]);
+        script_default = data[type] || RAINBOW.defaults[type];
     } else {
         script_default = RAINBOW.defaults[type];
     }
@@ -208,7 +208,7 @@ function time_to_hours(time) {
         min = parseInt(vals[R_MIN2], 10);
         sec = parseInt(vals[R_SEC2], 10);
         hour = parseInt(vals[R_HOUR], 10);
-        day = parseInt(vals[R_DAY] === null ? vals[R_DAY] : "0", 10);
+        day = parseInt(vals[R_DAY] || "0", 10);
         time_in_hours = 24.0 * day + hour + (60.0 * min + (1.0 * sec)) / 3600.0;
     }
     return time_in_hours;
