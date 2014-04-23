@@ -42,48 +42,48 @@ var PRETOME_THEME = "defaults";
  */
 var RAINBOW = {
     "defaults": { /* do not remove any keys here */
-        "hnr_ok_row1":     "#A9E6A7",
-        "hnr_ok_row2":     "#93C490",
-        "hnr_ok_text1":    null,
-        "hnr_ok_text2":    null,
-        "hnr_nok_row1":    "#E6A8A7",
-        "hnr_nok_row2":    "#C49095",
-        "hnr_nok_text1":   null,
-        "hnr_nok_text2":   null,
+        "hnr_ok_bg_row1":     "#A9E6A7",
+        "hnr_ok_bg_row2":     "#93C490",
+        "hnr_ok_fg_row1":     null,
+        "hnr_ok_fg_row2":     null,
+        "hnr_nok_bg_row1":    "#E6A8A7",
+        "hnr_nok_bg_row2":    "#C49095",
+        "hnr_nok_fg_row1":    null,
+        "hnr_nok_fg_row2":    null,
+                               
+        "ratio_ok_bg_row1":   "#A9E6A7",
+        "ratio_ok_bg_row2":   "#93C490",
+        "ratio_ok_fg_row1":   null,
+        "ratio_ok_fg_row2":   null,
+        "ratio_nok_bg_row1":  null,
+        "ratio_nok_bg_row2":  null,
+        "ratio_nok_fg_row1":  null,
+        "ratio_nok_fg_row2":  null,
 
-        "ratio_ok_row1":   "#A9E6A7",
-        "ratio_ok_row2":   "#93C490",
-        "ratio_ok_text1":  null,
-        "ratio_ok_text2":  null,
-        "ratio_nok_row1":  null,
-        "ratio_nok_row2":  null,
-        "ratio_nok_text1": null,
-        "ratio_nok_text2": null,
-
-        "seed_ok_row1":    "#A9E6A7",
-        "seed_ok_row2":    "#93C490",
-        "seed_ok_text1":   null,
-        "seed_ok_text2":   null,
-        "seed_nok_row1":   null,
-        "seed_nok_row2":   null,
-        "seed_nok_text1":  null,
-        "seed_nok_text2":  null
+        "seed_ok_bg_row1":    "#A9E6A7",
+        "seed_ok_bg_row2":    "#93C490",
+        "seed_ok_fg_row1":    null,
+        "seed_ok_fg_row2":    null,
+        "seed_nok_bg_row1":   null,
+        "seed_nok_bg_row2":   null,
+        "seed_nok_fg_row1":   null,
+        "seed_nok_fg_row2":   null
     },
     "Bday": {
-        "hnr_ok_text1":  "green",
-        "hnr_ok_text2":  "green",
-        "hnr_nok_text1": "red",
-        "hnr_nok_text2": "red",
-        "seed_ok_text1": "black",
-        "seed_ok_text2": "black"
+        "hnr_ok_fg_row1":     "green",
+        "hnr_ok_fg_row2":     "green",
+        "hnr_nok_fg_row1":    "red",
+        "hnr_nok_fg_row2":    "red",
+        "seed_ok_fg_row1":    "black",
+        "seed_ok_fg_row2":    "black"
     },
     "Industrial": {
-        "hnr_ok_text1":  "green",
-        "hnr_ok_text2":  "green",
-        "hnr_nok_text1": "red",
-        "hnr_nok_text2": "red",
-        "seed_ok_text1": "black",
-        "seed_ok_text2": "black"
+        "hnr_ok_fg_row1":     "green",
+        "hnr_ok_fg_row2":     "green",
+        "hnr_nok_fg_row1":    "red",
+        "hnr_nok_fg_row2":    "red",
+        "seed_ok_fg_row1":    "black",
+        "seed_ok_fg_row2":    "black"
     }
 };
 
@@ -154,18 +154,18 @@ function get_color(type, theme) {
 /**
  * Colors the given element depending on the status.
  *
- * @param column {string} - Name of the column.
+ * @param type {string} - Name of the column.
  * @param element {HTMLElement} - DOM Object to operate on.
  * @param status {boolean} - Status (true, false) is converted to ok, nok. You can also use ok, nok directly.
  * @param row {integer} - Row number (1 or 2).
  */
-function color_element(column, element, status, row) {
+function color_element(element, type, status, row) {
     "use strict";
     if (status === true || status === false) {
         status = status ? "ok" : "nok";
     }
-    var bgkey = column + "_" + status + "_row" + row,
-        fgkey = column + "_" + status + "_text" + row,
+    var bgkey = type + "_" + status + "_bg_row" + row,
+        fgkey = type + "_" + status + "_fg_row" + row,
         bgcolor = get_color(bgkey),
         fgcolor = get_color(fgkey);
 
@@ -215,7 +215,6 @@ function time_to_hours(time) {
 }
 
 PRETOME_THEME = detect_pretome_theme();
-var TABLE_COLUMNS = 3;
 
 function hnr_rainbow() {
     "use strict";
@@ -261,19 +260,16 @@ function hnr_rainbow() {
                 seed_hours = time_to_hours(seed_time);
 
                 // apply style to the elements.
-                color_element("ratio", r, (ratio > PRETOME_MIN_RATIO), row_style);
-                color_element("seed",  s, (seed_hours > PRETOME_MIN_SEED), row_style);
-                color_element("hnr",   h, (ratio > PRETOME_MIN_RATIO || seed_hours > PRETOME_MIN_SEED), row_style);
+                color_element(r, "ratio", (ratio > PRETOME_MIN_RATIO), row_style);
+                color_element(s, "seed",  (seed_hours > PRETOME_MIN_SEED), row_style);
+                color_element(h, "hnr",   (ratio > PRETOME_MIN_RATIO || seed_hours > PRETOME_MIN_SEED), row_style);
 
             }
         }
     }
 }
 
-// are we on the usertorrents page?
-if (/\/usertorrents\.php\?id=[0-9]+/.exec(document.location.href) !== null) {
-    hnr_rainbow();
-}
+
 
 function hnr_settings_link() {
     'use strict';
@@ -292,17 +288,41 @@ function hnr_settings_link() {
 
 }
 
-function hnr_settings_save(event) {
-    'use strict';
-    //var target = event ? event.target : this;
-    unsafeWindow.console.log("Saving your settings BIATCH");
-    // Store all the values using GM_setValue();
-
+function hnr_settings_colorpickers(type, row, ok) {
+    
 }
 
 // generates a color picker element.
-function hnr_settings_colorpick() {
+function hnr_settings_colorblock(type, row) {
     'use strict';
+    var element, lefty, righty;
+    
+    element = document.createElement('div');
+    element.setAttribute('class', row);
+    element.style.marginTop = 0;
+    element.style.marginBottom = 0;
+    element.style.marginLeft = 0;
+    element.style.marginRight = 0;
+    element.style.width = '100%';
+    
+    lefty = document.createElement('div');
+    lefty.style.width = '50%';
+    lefty.style.cssFloat = "left";
+    lefty.innerHTML = "lefty";
+    
+    righty = document.createElement('div');
+    righty.style.width = '50%';
+    righty.style.overflow = "hidden";
+    
+    righty.innerHTML = "righty";
+    
+    
+    //righty.style.backgroundColor = '#f0f';
+    //lefty.style.backgroundColor = '#0ff';
+
+    element.appendChild(lefty);
+    element.appendChild(righty);
+    return element;
 }
 
 function hnr_settings_theme_rows(table, index, theme) {
@@ -310,11 +330,11 @@ function hnr_settings_theme_rows(table, index, theme) {
     index = index === undefined ? 1 : index;
     theme = theme === undefined ? "defaults" : theme;
 
-    var type, row1, row2, row1_ok, row1_nok, row2_ok, row2_nok, type_cell, i,
+    var type, row1, row2, cell_row1, cell_row2, cell_type, i,
         last_index = index,
         types = ['ratio', 'seed', 'hnr'];
 
-    table.insertRow(index).innerHTML = "<td class='row2' colspan='" + TABLE_COLUMNS + "'><h3>Theme " + theme + "</h3></td>";
+    table.insertRow(index).innerHTML = "<td class='row2' colspan='2'><h3>Theme " + theme + "</h3></td>";
 
     for (i = 0; i < types.length; i = i + 1) {
         type = types[i];
@@ -324,18 +344,17 @@ function hnr_settings_theme_rows(table, index, theme) {
         last_index += 1;
         row2 = table.insertRow(last_index);
 
-        type_cell = row1.insertCell(0);
-        type_cell.setAttribute('rowspan', 2);
-        type_cell.innerHTML = "<b>" + type + "</b>";
-        row1_ok = row1.insertCell(1);
-        row1_nok = row1.insertCell(2);
-        row2_ok = row2.insertCell(0);
-        row2_nok = row2.insertCell(1);
-
-        row1_ok.innerHTML = "ROW1_OK";
-        row1_nok.innerHTML = "ROW1_NOK";
-        row2_ok.innerHTML = "ROW2_OK";
-        row2_nok.innerHTML = "ROW2_NOK";
+        cell_type = row1.insertCell(0);
+        cell_type.setAttribute('rowspan', 2);
+        cell_type.setAttribute('class', 'rowhead');
+        cell_type.innerHTML = type;
+        
+        cell_row1 = row1.insertCell(1);
+        cell_row1.appendChild(hnr_settings_colorblock(type, 'row1'));
+        
+        cell_row2 = row2.insertCell(0);
+        cell_row2.appendChild(hnr_settings_colorblock(type, 'row2'));
+        
     }
 
     /*for (var type in RAINBOW["defaults"]) {
@@ -348,32 +367,55 @@ function hnr_settings_theme_rows(table, index, theme) {
 }
 
 
-function hnr_settings_display() {
+function hnr_settings_save_intercept(event) {
+    'use strict';
+    var frm = event ? event.target : this;
+    unsafeWindow.console.log("Saving your settings BIATCH");
+       
+    // Store all the values using GM_setValue();
+    
+    // Remove them from the form.
+    
+    // Call original submit.
+    unsafeWindow.console.log("Call original form");
+    HTMLFormElement.prototype._submit.apply(frm);
+}
+
+function hnr_settings_display(show) {
     'use strict';
     unsafeWindow.console.log("Showing the configuration dialog");
     var snapResults, the_form, _table, table, _buttons,
         index, themes, i;
 
-
+    //Intercept the form
+    //Save our data stuffs on submit
+    //Remove our elements from the data stuffs
+    
     snapResults = get_elements('//input[@value = "Update Profile"]/ancestor::form');
     if (snapResults !== null) {
         // Override the default form actions.
         the_form = snapResults.snapshotItem(0);
-        the_form.method = "get";
-        the_form.action = "javascript:;";
-        the_form.addEventListener('submit', hnr_settings_save, true);
+        
+        if (show == "hnr") {
+           unsafeWindow.console.log("No other settings, make sure we dont submit :)");
+
+           the_form.method = "get";
+           the_form.action = "javascript:;";
+        }
+        
+        the_form.addEventListener('submit', hnr_settings_save_intercept, true);
         HTMLFormElement.prototype._submit = HTMLFormElement.prototype.submit;
-        HTMLFormElement.prototype.submit = hnr_settings_save;
+        HTMLFormElement.prototype.submit = hnr_settings_save_intercept;
 
         _table = get_elements('.//table', the_form);
         if (_table === null) { return false; }
-
         table = _table.snapshotItem(0);
         _buttons = get_elements('.//td[@colspan = 2]', table);
-        if (_buttons === null) { return false; }
-        _buttons.snapshotItem(0).setAttribute('colspan', TABLE_COLUMNS);
+        
+        if (_buttons === null) { return false; }        
+        //_buttons.snapshotItem(0).setAttribute('colspan', TABLE_COLUMNS);
 
-        table.insertRow(0).innerHTML = "<td class='row1' colspan='" + TABLE_COLUMNS + "'><h2>Hnr Settings</h2></td>";
+        table.insertRow(0).innerHTML = "<td class='row1' colspan='2'><h2>Hnr Settings</h2></td>";
         Object.defineProperty(Array.prototype, "filterValue", {
             enumerable: false,
             value: function (itemToRemove) {
@@ -385,8 +427,9 @@ function hnr_settings_display() {
             }
         });
         index = 1;
-        themes = Object.keys(RAINBOW).filterValue("defaults");
-        unsafeWindow.console.log(themes);
+        //themes = Object.keys(RAINBOW).filterValue("defaults");
+        //unsafeWindow.console.log(themes);
+        hnr_settings_theme_rows(table, index, PRETOME_THEME);
         for (i = 0; i < themes.length; i = i + 1) {
             index = hnr_settings_theme_rows(table, index, themes[i]);
         }
@@ -409,10 +452,15 @@ function hnr_settings(show) {
     switch (show) {
     case "all":
     case "hnr":
-        hnr_settings_display();
+        hnr_settings_display(show);
         break;
     }
 
+}
+
+// are we on the usertorrents page?
+if (/\/usertorrents\.php\?id=[0-9]+/.exec(document.location.href) !== null) {
+    hnr_rainbow();
 }
 
 var my_match = /my\.php\??(?:show=([a-z]+)(?:&.*)?)?(?:#.*)?$/.exec(document.location.href);
