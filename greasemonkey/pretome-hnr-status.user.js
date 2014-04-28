@@ -3,9 +3,8 @@
 // ==UserScript==
 // @name        pretome - HnR status
 // @namespace   http://vstone.eu/greasemonkey/
-// @include     https://pretome.info/usertorrents.php*
-// @include     https://pretome.info/my.php*
-// @version     0.3.0
+// @include     https://pretome.info/*
+// @version     0.3.1
 // @grant       GM_getValue
 // @grant       GM_setValue
 // ==/UserScript==
