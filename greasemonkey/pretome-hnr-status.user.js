@@ -16,6 +16,7 @@ var PRETOME_MIN_RATIO = 0.8;
 var PRETOME_MIN_SEED = 60.0;
 
 var PRETOME_THEME = "defaults";
+var PRETOME_USERID = null;
 
 /**
  * The RAINBOW tree.
@@ -50,7 +51,7 @@ var RAINBOW = {
         "hnr_nok_bg_row2":    "#C49095",
         "hnr_nok_fg_row1":    null,
         "hnr_nok_fg_row2":    null,
-                               
+
         "ratio_ok_bg_row1":   "#A9E6A7",
         "ratio_ok_bg_row2":   "#93C490",
         "ratio_ok_fg_row1":   null,
@@ -108,6 +109,9 @@ function get_elements(xpath, parent) {
     parent = parent === undefined ? document : parent;
 
     var snapResults = document.evaluate(xpath, parent, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    if (snapResults === null) {
+        throw "Element not found with parent: " + parent + " / xpath:" + xpath;
+    }
     return snapResults;
 }
 
@@ -123,6 +127,23 @@ function detect_pretome_theme() {
     }
     return false;
 }
+PRETOME_THEME = detect_pretome_theme();
+
+
+function detect_pretome_userid() {
+    'use strict';
+    var node, href, regex,
+        xpath = "//a[contains(@href, 'userdetails.php?id=')]";
+
+    regex = /[0-9]+$/;
+    node = get_elements(xpath);
+
+    if (node === null || node.snapshotItem(0) === null) { return false; }
+    node = node.snapshotItem(0);
+    href = node.getAttribute('href');
+    return regex.exec(href);
+}
+PRETOME_USERID = detect_pretome_userid();
 
 /**
  * Gets the color defined for a certain key. First tries to use GM_getValue and defaults
@@ -203,18 +224,17 @@ function time_to_hours(time) {
     if (vals[R_MIN]) {
         min = parseInt(vals[R_MIN], 10);
         sec = parseInt(vals[R_SEC], 10);
-        time_in_hours = (60.0 * min + 1.0 * sec) / 3600.0;
+        time_in_hours = ((60.0 * min) + sec) / 3600.0;
     } else {
         min = parseInt(vals[R_MIN2], 10);
         sec = parseInt(vals[R_SEC2], 10);
         hour = parseInt(vals[R_HOUR], 10);
         day = parseInt(vals[R_DAY] || "0", 10);
-        time_in_hours = 24.0 * day + hour + (60.0 * min + (1.0 * sec)) / 3600.0;
+        time_in_hours = 24.0 * day + hour + ((60.0 * min) + sec) / 3600.0;
     }
     return time_in_hours;
 }
 
-PRETOME_THEME = detect_pretome_theme();
 
 function hnr_rainbow() {
     "use strict";
@@ -222,7 +242,6 @@ function hnr_rainbow() {
     var i, r, s, h, row, row_style, hnr_ok, ratio, seed_running, seed_time, seed_hours, table, snapResults;
 
     snapResults = get_elements('//h1[contains(text(), "Download History for ")]/..//table|//h1[contains(text(), "Download History for ")]/../../..//table');
-
     if (snapResults === null) {
         unsafeWindow.console.error("Could not find the table to work on.", snapResults);
     } else {
@@ -269,8 +288,6 @@ function hnr_rainbow() {
     }
 }
 
-
-
 function hnr_settings_link() {
     'use strict';
     var el, br, link, snapResults;
@@ -289,14 +306,14 @@ function hnr_settings_link() {
 }
 
 function hnr_settings_colorpickers(type, row, ok) {
-    
+    'use strict';
 }
 
 // generates a color picker element.
 function hnr_settings_colorblock(type, row) {
     'use strict';
     var element, lefty, righty;
-    
+
     element = document.createElement('div');
     element.setAttribute('class', row);
     element.style.marginTop = 0;
@@ -304,19 +321,18 @@ function hnr_settings_colorblock(type, row) {
     element.style.marginLeft = 0;
     element.style.marginRight = 0;
     element.style.width = '100%';
-    
+
     lefty = document.createElement('div');
     lefty.style.width = '50%';
     lefty.style.cssFloat = "left";
     lefty.innerHTML = "lefty";
-    
+
     righty = document.createElement('div');
     righty.style.width = '50%';
     righty.style.overflow = "hidden";
-    
+
     righty.innerHTML = "righty";
-    
-    
+
     //righty.style.backgroundColor = '#f0f';
     //lefty.style.backgroundColor = '#0ff';
 
@@ -348,13 +364,13 @@ function hnr_settings_theme_rows(table, index, theme) {
         cell_type.setAttribute('rowspan', 2);
         cell_type.setAttribute('class', 'rowhead');
         cell_type.innerHTML = type;
-        
+
         cell_row1 = row1.insertCell(1);
         cell_row1.appendChild(hnr_settings_colorblock(type, 'row1'));
-        
+
         cell_row2 = row2.insertCell(0);
         cell_row2.appendChild(hnr_settings_colorblock(type, 'row2'));
-        
+
     }
 
     /*for (var type in RAINBOW["defaults"]) {
@@ -366,16 +382,15 @@ function hnr_settings_theme_rows(table, index, theme) {
     return last_index + 1;
 }
 
-
 function hnr_settings_save_intercept(event) {
     'use strict';
     var frm = event ? event.target : this;
     unsafeWindow.console.log("Saving your settings BIATCH");
-       
+
     // Store all the values using GM_setValue();
-    
+
     // Remove them from the form.
-    
+
     // Call original submit.
     unsafeWindow.console.log("Call original form");
     HTMLFormElement.prototype._submit.apply(frm);
@@ -390,19 +405,18 @@ function hnr_settings_display(show) {
     //Intercept the form
     //Save our data stuffs on submit
     //Remove our elements from the data stuffs
-    
+
     snapResults = get_elements('//input[@value = "Update Profile"]/ancestor::form');
     if (snapResults !== null) {
         // Override the default form actions.
         the_form = snapResults.snapshotItem(0);
-        
-        if (show == "hnr") {
-           unsafeWindow.console.log("No other settings, make sure we dont submit :)");
 
-           the_form.method = "get";
-           the_form.action = "javascript:;";
+        if (show === "hnr") {
+            unsafeWindow.console.log("No other settings, make sure we dont submit :)");
+            the_form.method = "get";
+            the_form.action = "javascript:;";
         }
-        
+
         the_form.addEventListener('submit', hnr_settings_save_intercept, true);
         HTMLFormElement.prototype._submit = HTMLFormElement.prototype.submit;
         HTMLFormElement.prototype.submit = hnr_settings_save_intercept;
@@ -411,8 +425,8 @@ function hnr_settings_display(show) {
         if (_table === null) { return false; }
         table = _table.snapshotItem(0);
         _buttons = get_elements('.//td[@colspan = 2]', table);
-        
-        if (_buttons === null) { return false; }        
+
+        if (_buttons === null) { return false; }
         //_buttons.snapshotItem(0).setAttribute('colspan', TABLE_COLUMNS);
 
         table.insertRow(0).innerHTML = "<td class='row1' colspan='2'><h2>Hnr Settings</h2></td>";
@@ -427,7 +441,7 @@ function hnr_settings_display(show) {
             }
         });
         index = 1;
-        //themes = Object.keys(RAINBOW).filterValue("defaults");
+        themes = Object.keys(RAINBOW).filterValue("defaults");
         //unsafeWindow.console.log(themes);
         hnr_settings_theme_rows(table, index, PRETOME_THEME);
         for (i = 0; i < themes.length; i = i + 1) {
