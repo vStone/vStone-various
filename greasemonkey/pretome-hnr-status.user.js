@@ -5,7 +5,7 @@
 // @namespace   http://vstone.eu/greasemonkey/
 // @include     https://pretome.info/usertorrents.php*
 // @include     https://pretome.info/my.php*
-// @version     0.2.1
+// @version     0.3.0
 // @grant       GM_getValue
 // @grant       GM_setValue
 // ==/UserScript==
@@ -490,12 +490,57 @@ function hnr_settings(show) {
 
 }
 
+function hnr_find_first_matching_parent(element, type) {
+    'use strict';
+
+    var parent = element.parentNode;
+    while (parent.nodeName !== type.toUpperCase()) {
+        parent = parent.parentNode;
+        if (parent.nodeName === 'HTML') {
+            return null;
+        }
+    }
+    return parent;
+
+}
+
+
+function hnr_add_link_to_userstuff() {
+    'use strict';
+
+    if (PRETOME_USERID === null) { return false; }
+
+    var xpath, table, el, tr, row, cell, klass, i;
+    xpath = "//a[text() = 'Inbox' and contains(@href, '/messages.php')]";
+    el = get_elements(xpath).snapshotItem(0);
+
+    tr = hnr_find_first_matching_parent(el, 'tr');
+    if (tr === null) { return false; }
+    table = hnr_find_first_matching_parent(tr, 'tbody');
+    if (table === null) { return false; }
+
+    row = document.createElement('tr');
+    cell = document.createElement('td');
+    cell.setAttribute("style", "text-align: center;");
+    cell.innerHTML = "<a style='display:block;' href='/usertorrents.php?id=" +  PRETOME_USERID + "'>History</a>";
+    row.appendChild(cell);
+    table.insertBefore(row, tr);
+    // fix row highlighting
+    for (i = 0; i < table.rows.length; i += 1) {
+        klass = "row" + (i % 2 === 0 ? '1' : '2');
+        table.rows[i].cells[0].setAttribute('class', klass);
+    }
+}
+
 // are we on the usertorrents page?
 if (/\/usertorrents\.php\?id=[0-9]+/.exec(document.location.href) !== null) {
     hnr_fixheader();
     hnr_rainbow();
 }
+// Add direct link to the history in the user menu.
+hnr_add_link_to_userstuff();
 
+// SETTINGS
 var my_match = /my\.php\??(?:show=([a-z]+)(?:&.*)?)?(?:#.*)?$/.exec(document.location.href);
 if (my_match !== null) {
     hnr_settings(my_match[1]);
