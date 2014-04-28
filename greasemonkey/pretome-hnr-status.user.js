@@ -236,54 +236,72 @@ function time_to_hours(time) {
 }
 
 
-function hnr_rainbow() {
-    "use strict";
-
-    var i, r, s, h, row, row_style, hnr_ok, ratio, seed_running, seed_time, seed_hours, table, snapResults;
+// Common method to find the Download history table.
+function hnr_findtable() {
+    'use strict';
+    var snapResults, table;
 
     snapResults = get_elements('//h1[contains(text(), "Download History for ")]/..//table|//h1[contains(text(), "Download History for ")]/../../..//table');
     if (snapResults === null) {
         unsafeWindow.console.error("Could not find the table to work on.", snapResults);
-    } else {
+        throw "Could not find the table on this page.";
+    }
+    table = snapResults.snapshotItem(0);
+    if (table === null || table.nodeName !== 'TABLE') {
+        unsafeWindow.console.error("Could not find the table to work on.", snapResults);
+        throw "Could not find the table on this page.";
+    }
+    return table;
 
-        // Initialize Variables.
+}
 
-        table = snapResults.snapshotItem(0);
+// Place headers in thead.
+function hnr_fixheader() {
+    'use strict';
 
-        if (table === null || table.nodeName !== "TABLE") {
-            unsafeWindow.console.error("Could not find the table or found element is not a table.", table);
-        } else {
-            // Loop over the rows / Skip the first row (start with 1).
-            for (i = 1; i < table.rows.length; i++) {
-                row = table.rows[i];
-                if (row.cells.length < 9) {
-                    continue;
-                }
+    var table, thead, rowhead;
 
-                r = row.cells[C_RATIO];
-                s = row.cells[C_SEED];
-                h = row.cells[C_HNR];
+    table = hnr_findtable();
+    thead = document.createElement('thead');
+    rowhead = table.rows[0];
+    thead.appendChild(rowhead);
+    table.insertBefore(thead, table.firstChild);
 
-                // row styles alternate.
-                row_style = (r.classList.contains("row1") ? 1 : 2);
+}
 
-                // parse the ratio.
-                ratio = parseFloat(r.textContent);
+// Colorify the table.
+function hnr_rainbow() {
+    "use strict";
 
-                // unused for now. this is what the site reports as fine. But fine is only fine when its done imho.
-                hnr_ok = (h.textContent === "Fine") ? true : false;
+    var i, r, s, h, row, row_style, ratio, seed_time, seed_hours, table;
+    table = hnr_findtable();
 
-                // Seed contains the time we are seeding and if we are currently seeding.
-                seed_running = (s.firstChild.textContent === "Yes") ? true : false;
-                seed_time = (s.lastChild.textContent);
-                seed_hours = time_to_hours(seed_time);
+    // Loop over the rows / Skip the first row (start with 1).
+    for (i = 1; i < table.rows.length; i += 1) {
+        row = table.rows[i];
+        if (row.cells.length === 9) {
+            r = row.cells[C_RATIO];
+            s = row.cells[C_SEED];
+            h = row.cells[C_HNR];
 
-                // apply style to the elements.
-                color_element(r, "ratio", (ratio > PRETOME_MIN_RATIO), row_style);
-                color_element(s, "seed",  (seed_hours > PRETOME_MIN_SEED), row_style);
-                color_element(h, "hnr",   (ratio > PRETOME_MIN_RATIO || seed_hours > PRETOME_MIN_SEED), row_style);
+            // row styles alternate.
+            row_style = (r.classList.contains("row1") ? 1 : 2);
 
-            }
+            // parse the ratio.
+            ratio = parseFloat(r.textContent);
+
+            // unused for now. this is what the site reports as fine. But fine is only fine when its done imho.
+            //var hnr_ok       = (h.textContent === "Fine") ? true : false;
+
+            // Seed contains the time we are seeding and if we are currently seeding.
+            //var seed_running = (s.firstChild.textContent === "Yes") ? true : false;
+            seed_time    = (s.lastChild.textContent);
+            seed_hours   = time_to_hours(seed_time);
+
+            // apply style to the elements.
+            color_element(r, "ratio", (ratio > PRETOME_MIN_RATIO), row_style);
+            color_element(s, "seed",  (seed_hours > PRETOME_MIN_SEED), row_style);
+            color_element(h, "hnr",   (ratio > PRETOME_MIN_RATIO || seed_hours > PRETOME_MIN_SEED), row_style);
         }
     }
 }
@@ -474,6 +492,7 @@ function hnr_settings(show) {
 
 // are we on the usertorrents page?
 if (/\/usertorrents\.php\?id=[0-9]+/.exec(document.location.href) !== null) {
+    hnr_fixheader();
     hnr_rainbow();
 }
 
