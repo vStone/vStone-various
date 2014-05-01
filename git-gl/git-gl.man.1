@@ -1,0 +1,154 @@
+.TH git-gl 1 "05/01/2014"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.nh
+.ad l
+.SH "NAME"
+git-gl - Eases the use of gitolite commands
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIgit gl\fR [\-\-info]
+\fIgit gl\fR [\-d] [\-r | \-\-remote=<remote>]
+        [\-h | \-\-host=<hostname>] [\-p | \-\-port=<port> ]
+        [\-u | \-\-user=<user>] [\-\-repo=repo] <command> [<command_options>]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+\fIgit gl\fR injects the remote server into gitolite commands\&. In stead of running ssh git.example.com info, you can run \fIgit gl info\fR\&.
+.SH "OPTIONS"
+.PP
+\-\-info
+.RS 4
+Prints all configuration and detected values.
+.RE
+.PP
+\-d
+.RS 4
+Show debug information.
+.RE
+.sp
+Each of the following options override a certain configuration setting.
+For more information on what they are and do, see the \fICONFIGURATION\fR
+section.
+.RS 4
+.PP
+\-\-remote=<remote>
+.RS 4
+Override the name of the git remote to use. See \fIgitolite.remote\fR.
+.RE
+.PP
+\-h, \-\-host=<hostname>
+.RS 4
+Override the gitolite ssh hostname. See \fIgitolite.host\fR.
+.RE
+.PP
+\-p, \-\-port=<port>
+.RS 4
+Override the gitolite ssh port. See \fIgitolite.port\fR.
+.RE
+.PP
+\-u, \-\-user=<user>
+.RS 4
+Override the gitolite ssh user to use. See \fIgitolite.user\fR.
+.RE
+.PP
+\-\-repo=repo
+.RS 4
+Override the gitolite repository name. See \fIgitolite.repo\fR.
+.RE
+.RE
+.SH "COMMANDS"
+.sp
+With no arguments, prints out the options and exits.
+.sp
+The availability of these commands depends on the remote
+gitolite server. To get a list of supported commands, run
+.sp
+.RS 4
+% git gl help
+.RE
+.sp
+Before commands are sent to the gitolite server using ssh,
+we translate certain arguments and put the remote repository
+in place for others.
+For example, in most cases, gitolite commands take the repository
+to work on as first argument.
+.sp
+.RS 4
+% ssh git@git.example.com desc foo/bar
+.RE
+.sp
+This will display the current description set for repository foo/bar.
+In other cases, the repository comes after a gitolite command option.
+.sp
+.RS 4
+% ssh git@git.example.com perms -l foo/bar
+.RE
+.sp
+The script contains some logic to rewrite the order of the arguments
+and injects the repository name where needed.
+.sp
+Some remote commands, not all, provide help information. In most cases,
+gitolite will output this information if a command is called without
+arguments. Note that in those cases, wherever a repository name is required
+as argument for the command, \fIgit gl\fR will inject it where needed.
+.sp
+See the list below for supported commands:
+.sp
+.RS 4
+.PP
+\fIcmd\fR
+.RS 4
+@TODO: Document cmd\&.
+.PP
+\-\-option
+.RS 4
+@TODO: Describe the option
+.RE
+.RE
+.SH "CONFIGURATION"
+The following configuration settings can be used to alter gitolite
+specific settings. Options on the command line however, take precedence.
+.PP
+gitolite.remote
+.RS 4
+Configures the name of the remote to use for auto-detecting values\&.
+By default \fIorigin\fR is used\&. Use the following command to get a list of
+possible values.
+.sp
+.RS 4
+% git remote
+.RE
+.RE
+.PP
+gitolite.repo
+.RS 4
+Sets the remote gitolite repository path. Defaults to the repository part
+of the url of the configured remote.
+.RE
+.PP
+gitolite.host
+.RS 4
+Sets the hostname of the remote gitolite server to use\&. This overrides
+the hostname derived from the configured \fIremote\fR\&.
+.RE
+.PP
+gitolite.user
+.RS 4
+Set the username to use on the gitolite server. By default, we use the
+username portion of the remote url or no username if it is unset. If no
+username has been set, the \fIssh\fR command will decide which user to use. This
+will either be the current user, or whatever is configured in the ssh
+configuration for this host.
+.RE
+.PP
+gitolite.port
+.RS 4
+Override the port to use on the gitlote server. By default, we use the port
+configured in the remote url. If no port is configured and not part of the
+remote url, the \fIssh\fR command will decide which port to use. This will be the
+default port 22 or whatever is configured in the ssh configuration for this
+host.
+.RE
