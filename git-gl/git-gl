@@ -194,6 +194,7 @@ translate_gitolite() {
   case $command in
     ## ========== internal commands =========
     (info)        translated="$command";;
+    (help)        translated="$command";;
     ## ========== access ==========
     (access)      if [ -n "$2" ]; then
                     translated="$command $repo $*";
