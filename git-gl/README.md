@@ -1,15 +1,4 @@
-Helper script to execute gitolite commands on the current repo.
-Copy to your git-core directory (/usr/libexec/git-core/
+# git-gl
 
-
-For help:
-
-    git gl
-
-Examples:
-
-    git gl perms -l
-    git gl perms - READERS @public
-
-    git gl web desc 'Something'
+This script has MOVED to https://git.vstone.org/?p=projects/git-gl.git;a=summary
 
