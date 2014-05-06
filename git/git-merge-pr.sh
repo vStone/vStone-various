@@ -95,7 +95,7 @@ curl -# -s -H 'Accept: application/vnd.github.v3+json' -i https://api.github.com
 state="$( grep '"state":' $tmpfile | sed 's@.*"state": "\(.*\)",$@\1@' )";
 title="$( grep '"title":' $tmpfile | sed 's@.*"title": "\(.*\)",$@\1@' )";
 
-if [ "${state}" == "closed" && "${force}" != "1" ]; then
+if [[ "${state}" == "closed" && "${force}" != "1" ]]; then
   syserr "This pull request is marked as closed on the remote (http://github.com/${project}/pull/${pr}). Use -f to force.";
 fi;
 
