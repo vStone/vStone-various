@@ -9,9 +9,12 @@ OPTIONS:
 
   -e, --edit        Edit the commit message before committing.
   -f, --force       Merge the pull request even if it has been closed.
+                    This also does a force fetch to ensure the latest
+                    upstream code locally.
   -n, --dry-run     Do everything but the actual merge.
   -r, --remote      The remote to use. Defaults to origin.
       --no-link     Do not include a link the project in the commit message.
+      --full-link   Link using the complete github url.
 
   -v, --verbose     Be more verbose.
   -h, --help        You are looking at it.
@@ -23,7 +26,7 @@ EOHELP
 syserr() { echo "ERROR: $@" 1>&2; exit 1; }
 sysinfo() { echo "$@"; }
 sysdebug() {
-  [ -n $DEBUG ] && echo "DEBUG: $@";
+  [ -z "$DEBUG" ] && echo "DEBUG: $@";
 }
 
 ## No options = show help
@@ -46,7 +49,7 @@ else
 fi;
 
 GETOPT_TEMP=`getopt -o -efhnvr: \
-  --long dry-run,edit,force,help,verbose,remote:,no-link \
+  --long dry-run,edit,force,help,verbose,remote:,no-link,full-link \
   -n "$0" -- "$@"`;
 if [[ $? != 0 ]]; then
   syserr "Error parsing arguments."
@@ -60,6 +63,7 @@ while [ $# -gt 0 ]; do
     -v|--verbose)   verbose="1";;
     -n|--dry-run)   dry_run="1";;
        --no-link)   no_link="1";;
+       --full-link) full_link="1";;
 
     -h|--help)      _help; exit 0;;
     -*)             syserr "Unknown option '$1'";;
@@ -72,6 +76,8 @@ done;
 pr=$1;
 remote="${remote-origin}";
 
+[ "$no_link" == "1" ] && [ "$full_link" == "1" ] && syserr "Choose: --no-links OR --full-links. Not both!"
+
 if ! echo $pr | grep -q '^[0-9]\+$'; then
   syserr "Pull request number  must be numeric"
 fi;
@@ -82,6 +88,12 @@ fi
 
 url=$( git remote show -n $remote | grep 'Push' | sed 's@.*URL\:\s\+\(.*\)$@\1@' );
 project=$( echo $url | sed 's@.*\(/\|:\)\([^/]\+\)/\([^/]\+\).git$@\2/\3@' )
+
+if [ "${full_link}" == "1" ]; then
+  pr_link="https://github.com/${project}/pull/${pr}"
+else
+  pr_link="${project}#${pr}"
+fi;
 
 sysinfo "Project: $project";
 sysinfo " + URL: https://github.com/${url}";
@@ -102,11 +114,18 @@ fi;
 sysinfo "Pull Request #${pr}: $title ($state)";
 sysdebug "Fetching remote ref: 'git fetch ${remote} pull/${pr}/head:pr/${pr}'"
 
-if [ "$verbose" == "1" ]; then
-  git fetch -v ${remote} pull/${pr}/head:pr/${pr} || syserr "Could not get remote pull request";
-else
-  git fetch -q ${remote} pull/${pr}/head:pr/${pr} 2>/dev/null || syserr "Could not get remote pull request";
+git_fetch_opts=""
+
+if [ "$force" == "1" ]; then
+  git_fetch_opts="--force"
 fi;
+
+if [ "$verbose" == "1" ]; then
+  git fetch -v $git_fetch_opts ${remote} pull/${pr}/head:pr/${pr} || syserr "Could not get remote pull request";
+else
+  git fetch -q $git_fetch_opts ${remote} pull/${pr}/head:pr/${pr} 2>/dev/null || syserr "Could not get remote pull request";
+fi;
+
 
 _git_merge_cmd="git merge --no-ff pr/${pr} --log";
 [ "$edit" == "1" ] &&  _git_merge_cmd+=" -e";
@@ -116,11 +135,12 @@ if [ "$dry_run"  == "1" ]; then
   sysinfo "$_git_merge_cmd -m <MESSAGE>";
 else
   if [ "${no_link}" == "1" ]; then
-    $_git_merge_cmd -m "Merged pull request: #${pr}: ${title}" || syserror "Unable to merge branch pr/${pr}"
+    $_git_merge_cmd -m "Merged pull request: #${pr}: ${title}" || syserr "Unable to merge branch pr/${pr}"
   else
-    $_git_merge_cmd -m "Merged pull request: #${pr}: ${title}
 
-See ${project}#${pr} for more information" || syserror "Unable to merge branch pr/${pr}";
+    $_git_merge_cmd -m "Merged pull request: ${pr_link}: ${title}
+
+See ${pr_link} for more information" || syserr "Unable to merge branch pr/${pr}";
   fi;
 fi;
 
