@@ -15,6 +15,7 @@ OPTIONS:
   -r, --remote      The remote to use. Defaults to origin.
       --no-link     Do not include a link the project in the commit message.
       --full-link   Link using the complete github url.
+      --no-ff       NEVER fast forward merges
 
   -v, --verbose     Be more verbose.
   -h, --help        You are looking at it.
@@ -49,7 +50,7 @@ else
 fi;
 
 GETOPT_TEMP=`getopt -o -efhnvr: \
-  --long dry-run,edit,force,help,verbose,remote:,no-link,full-link \
+  --long dry-run,edit,force,help,verbose,remote:,no-link,full-link,no-ff \
   -n "$0" -- "$@"`;
 if [[ $? != 0 ]]; then
   syserr "Error parsing arguments."
@@ -64,6 +65,7 @@ while [ $# -gt 0 ]; do
     -n|--dry-run)   dry_run="1";;
        --no-link)   no_link="1";;
        --full-link) full_link="1";;
+       --no-ff)     no_ff="1";;
 
     -h|--help)      _help; exit 0;;
     -*)             syserr "Unknown option '$1'";;
@@ -130,6 +132,7 @@ fi;
 _git_merge_cmd="git merge --no-ff pr/${pr} --log";
 [ "$edit" == "1" ] &&  _git_merge_cmd+=" -e";
 [ "$verbose" == "1" ] && _git_merge_cmd+=" --verbose";
+[ "$no_ff" == "1" ] && _git_merge_cmd+=" --no-ff";
 
 if [ "$dry_run"  == "1" ]; then
   sysinfo "$_git_merge_cmd -m <MESSAGE>";
