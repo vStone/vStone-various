@@ -1,0 +1,1 @@
+gimp -i -b '(batch-color-to-alpha "*.png" '"'"'(0 0 0) )' -b '(gimp-quit 0)'
