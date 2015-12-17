@@ -1,5 +1,5 @@
 ## This script implies that you have git bash completion and git prompt magic scripts in place.
-
+source /usr/share/bash-completion/completions/git
 
 ## USAGE: __git_ps1_remotes <println> <printr> <printa> <printn>
 # println: This printf is used to print the complete result. defaults to ' (%s)'
