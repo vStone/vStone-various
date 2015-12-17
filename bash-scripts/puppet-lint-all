@@ -15,6 +15,8 @@ else
   lint_cmd="puppet-lint";
 fi;
 
+lint_cmd="puppet-lint --log-format '%{filename}:%{line} %{KIND} %{message} [%{check}]' "
+
 puppet_cmd='puppet parser validate ';
 
 run_puppet_check() {
