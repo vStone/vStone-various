@@ -4,7 +4,7 @@
 // @name        pretome - HnR status
 // @namespace   http://vstone.eu/greasemonkey/
 // @include     https://pretome.info/*
-// @version     0.3.1
+// @version     0.3.2
 // @grant       GM_getValue
 // @grant       GM_setValue
 // ==/UserScript==
@@ -248,13 +248,13 @@ function hnr_findtable(text) {
 
     snapResults = get_elements('//h1[contains(text(), "' + text + '")]/..//table|//h1[contains(text(), "' + text + '")]/../../..//table');
     if (snapResults === null) {
-        unsafeWindow.console.error("Could not find the table to work on.", snapResults);
-        throw "Could not find the table on this page.";
+        unsafeWindow.console.error("Could not find the table to work on with text '" + text + "'", snapResults);
+        return false;
     }
     table = snapResults.snapshotItem(0);
     if (table === null || table.nodeName !== 'TABLE') {
-        unsafeWindow.console.error("Could not find the table to work on.", snapResults);
-        throw "Could not find the table on this page.";
+        unsafeWindow.console.error("Could not find the table to work on with text '" + text + "'", snapResults);
+        return false;
     }
     return table;
 
@@ -263,15 +263,15 @@ function hnr_findtable(text) {
 // Place headers in thead.
 function hnr_fixheader(text) {
     'use strict';
-
     var table, thead, rowhead;
 
     table = hnr_findtable(text);
-    thead = document.createElement('thead');
-    rowhead = table.rows[0];
-    thead.appendChild(rowhead);
-    table.insertBefore(thead, table.firstChild);
-
+    if (table != false) {
+      thead = document.createElement('thead');
+      rowhead = table.rows[0];
+      thead.appendChild(rowhead);
+      table.insertBefore(thead, table.firstChild);
+    }
 }
 
 // Colorify the table.
@@ -280,9 +280,9 @@ function hnr_rainbow() {
 
     var i, r, s, h, row, row_style, ratio, seed_time, seed_hours, table;
     table = hnr_findtable("Download History for ");
-
-    // Loop over the rows / Skip the first row (start with 1).
-    for (i = 1; i < table.rows.length; i += 1) {
+    if (table != false) {
+      // Loop over the rows / Skip the first row (start with 1).
+      for (i = 1; i < table.rows.length; i += 1) {
         row = table.rows[i];
         if (row.cells.length === C_HISTORY_COUNT) {
             r = row.cells[C_HISTORY_RATIO];
@@ -308,11 +308,12 @@ function hnr_rainbow() {
             color_element(s, "seed",  (seed_hours > PRETOME_MIN_SEED), row_style);
             color_element(h, "hnr",   (ratio > PRETOME_MIN_RATIO || seed_hours > PRETOME_MIN_SEED), row_style);
         }
+      }
     }
-    
     table = hnr_findtable("Peer Details for ");
-    // Loop over the rows / Skip the first row (start with 1).
-    for (i = 1; i < table.rows.length; i += 1) {
+    if (table != false) {
+      // Loop over the rows / Skip the first row (start with 1).
+      for (i = 1; i < table.rows.length; i += 1) {
         row = table.rows[i];
         if (row.cells.length === C_PEER_COUNT) {
             r = row.cells[C_PEER_RATIO];
@@ -340,6 +341,7 @@ function hnr_rainbow() {
             unsafeWindow.console.log("Seed time in hours", s.lastChild.textContent, seed_hours);
 
         }
+      }
     }
 }
 
