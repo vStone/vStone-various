@@ -1,0 +1,81 @@
+#!/bin/bash -x
+
+if [ $# -eq 0 ]; then
+  set -- --help
+fi
+
+OPTS_SPEC="\
+git upsub <options> [modulepath]
+--
+help
+e,edit    edit the commit message before committing
+a,all     update all submodules
+s,split   split each module update in a separate commit
+"
+
+eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt --stop-at-non-option -- "$@" || echo exit $?)"
+PATH=$PATH:$(git --exec-path)
+SUBDIRECTORY_OK=1
+. git-sh-setup
+
+require_work_tree
+
+edit=0;
+all=0;
+split=0;
+
+while [ $# -gt 0 ]; do
+  opt="$1"
+  shift;
+  case "$opt" in
+
+    (-e)    edit=1;;
+    (-a)    all=1;;
+    (-s)    split=1;;
+    ([^-]*) break;;
+    (--)    break;;
+    (-*)    die "Unexpected option: $opt";;
+  esac
+done
+
+commit_modules() {
+  local modules=( "$@" );
+  local mcount=${#modules[@]}
+
+  for m in "${modules[@]}"; do
+    git add $m >/dev/null || exit 1;
+  done;
+
+  local tmpfile=`mktemp -t git-submodule-commit.XXXXXXX` || exit 1;
+  local cmd="$( [ $edit -eq 1 ] && echo '--edit' || echo '' )";
+  local mstr=$( [ $mcount -gt 1 ] && echo "${mcount} submodules:" || echo 'submodule' );
+  echo -e "Updated ${mstr} ${modules[@]}\n\n\n" > $tmpfile
+  git submodule summary --cached >> $tmpfile
+  exec git commit $cmd -F $tmpfile
+  local ex=$?
+  rm $tmpfile;
+  if [ $ex -gt 0 ]; then
+    exit $ex;
+  fi;
+}
+
+
+modules=( "$@" )
+
+if [ $all -eq 1 ]; then
+  echo "Checking submodules..."
+  modules=( $( git submodule status | grep ^+ | awk '{print $2}' ) );
+fi;
+
+if [ ${#modules[@]} -eq 0 ]; then
+  echo "No modules have been changed (did you stage them already?)" 1>&2
+  exit 0;
+fi;
+
+if [ $split -eq 1 ]; then
+  for m in "${modules[@]}"; do
+    commit_modules "$m"
+  done;
+else
+  commit_modules "${modules[@]}";
+fi;
