@@ -1,0 +1,48 @@
+#!/bin/sh
+# Pauzes/Unpauzes all running virtualbox machines
+
+. "${PM_FUNCTIONS}"
+
+suspend_virtualbox_vms()
+{
+	users_running_vms=`ps aux --no-headers | grep VBoxSV[C] | awk '{print $1}' | sort -u`;
+	for user in $users_running_vms; do
+		printf "Pause running machines for user %s..." "$user"
+		su - $user -- /usr/bin/VBoxManage list runningvms | while read machine; do
+			vmuid=`expr match "$machine"  '.*{\(.*\)}$'`
+			if su - $user -- /usr/bin/VBoxManage showvminfo $vmuid --machinereadable | grep -q 'VMState="running"'; then
+				su - $user -- /usr/bin/VBoxManage controlvm $vmuid pause
+			fi;
+		done;
+		echo "Done."
+	done;
+	return 0
+}
+
+resume_virtualbox_vms()
+{
+
+	users_running_vms=`ps aux --no-headers | grep VBoxSV[C] | awk '{print $1}' | sort -u`;
+	for user in $users_running_vms; do
+		printf "Resuming paused machines for user %s..." "$user"
+		su - $user -- /usr/bin/VBoxManage list runningvms | while read machine; do
+			vmuid=`expr match "$machine"  '.*{\(.*\)}$'`
+			if su - $user -- /usr/bin/VBoxManage showvminfo $vmuid --machinereadable | grep -q 'VMState="paused"'; then
+				su - $user -- /usr/bin/VBoxManage controlvm $vmuid resume;
+			fi;
+		done;
+		echo "Done."
+	done;
+	return 0
+}
+
+case "$1" in
+	hibernate|suspend)
+		suspend_virtualbox_vms
+		;;
+	thaw|resume)
+		resume_virtualbox_vms
+		;;
+	*) exit $NA
+		;;
+esac
