@@ -10,6 +10,7 @@ git upsub <options> [modulepath]
 help
 e,edit    edit the commit message before committing
 a,all     update all submodules
+c,staged  commit already staged submodules (exludes split)
 s,split   split each module update in a separate commit
 "
 
@@ -29,24 +30,30 @@ while [ $# -gt 0 ]; do
   opt="$1"
   shift;
   case "$opt" in
-
     (-e)    edit=1;;
     (-a)    all=1;;
     (-s)    split=1;;
+    (-c)    staged=1;;
     ([^-]*) break;;
     (--)    break;;
     (-*)    die "Unexpected option: $opt";;
   esac
 done
 
-commit_modules() {
+stage_modules() {
   local modules=( "$@" );
-  local mcount=${#modules[@]}
-
   for m in "${modules[@]}"; do
     git add $m >/dev/null || exit 1;
   done;
+}
 
+commit_modules() {
+  local modules=( $( git submodule summary --cached | grep '^*' | awk '{print $2}' ) );
+  local mcount=${#modules[@]}
+  if [ $mcount -eq 0 ]; then
+    echo "No staged modules found. Exiting!"
+    exit 1;
+  fi;
   local tmpfile=`mktemp -t git-submodule-commit.XXXXXXX` || exit 1;
   local cmd="$( [ $edit -eq 1 ] && echo '--edit' || echo '' )";
   local mstr=$( [ $mcount -gt 1 ] && echo "${mcount} submodules:" || echo 'submodule' );
@@ -58,9 +65,17 @@ commit_modules() {
   if [ $ex -gt 0 ]; then
     exit $ex;
   fi;
+  return 0;
 }
 
 ( cd $( git rev-parse --show-toplevel );
+
+if [ $staged -eq 1 ]; then
+  echo "Committing staged modules";
+  commit_modules
+  exit 0;
+fi;
+
 modules=( "$@" )
 
 if [ $all -eq 1 ]; then
@@ -75,9 +90,11 @@ fi;
 
 if [ $split -eq 1 ]; then
   for m in "${modules[@]}"; do
-    commit_modules "$m"
+    stage_modules "$m"
+    commit_modules
   done;
 else
-  commit_modules "${modules[@]}";
+  stage_modules "${modules[@]}";
+  commit_modules
 fi;
 )
