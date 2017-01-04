@@ -25,6 +25,7 @@ require_work_tree
 edit=0;
 all=0;
 split=0;
+staged=0;
 
 while [ $# -gt 0 ]; do
   opt="$1"
@@ -59,7 +60,7 @@ commit_modules() {
   local mstr=$( [ $mcount -gt 1 ] && echo "${mcount} submodules:" || echo 'submodule' );
   echo -e "Updated ${mstr} ${modules[@]}\n\n\n" > $tmpfile
   git submodule summary --cached >> $tmpfile
-  exec git commit $cmd -F $tmpfile
+  git commit $cmd -F $tmpfile
   local ex=$?
   rm $tmpfile;
   if [ $ex -gt 0 ]; then
