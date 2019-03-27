@@ -68,18 +68,15 @@ __git_ps1_flow() {
   fi;
 }
 
-green=$( tput setaf 2 );
-blue=$( tput setaf 4 );
-cyan=$( tput setaf 6 );
-
-bgreen=$( tput setaf 2; tput bold );
-bblue=$( tput setaf 4; tput bold );
-bcyan=$( tput setaf 6; tput bold );
-
-reset=$( tput sgr0 );
-
 ## Example prompt with fancy colors
+#green=$( tput setaf 2 );
+#blue=$( tput setaf 4 );
+#cyan=$( tput setaf 6 );
+#bgreen=$( tput setaf 2; tput bold );
+#bblue=$( tput setaf 4; tput bold );
+#bcyan=$( tput setaf 6; tput bold );
+#reset=$( tput sgr0 );
 
-PS1='\[$bgreen\]\u@\h\[$bblue\] \w\[$reset\]$(__git_ps1_remotes " \[$bcyan\][$(__git_ps1_flow): \[$reset\]%s \[$bcyan\]|\[$reset\] " "%s" "\[$green\]%s\[$reset\]" " \[$bcyan\][$(__git_ps1_flow): ")$(__git_ps1 "\[$bcyan\]%s ]\[$reset\]") \[$bblue\]\$\[$reset\] '
+#PS1='\[$bgreen\]\u@\h\[$bblue\] \w\[$reset\]$(__git_ps1_remotes " \[$bcyan\][$(__git_ps1_flow): \[$reset\]%s \[$bcyan\]|\[$reset\] " "%s" "\[$green\]%s\[$reset\]" " \[$bcyan\][$(__git_ps1_flow): ")$(__git_ps1 "\[$bcyan\]%s ]\[$reset\]") \[$bblue\]\$\[$reset\] '
 
 # vim: set tabstop=2 expandtab syntax=sh:
