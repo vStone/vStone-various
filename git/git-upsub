@@ -1,4 +1,8 @@
 #!/bin/bash
+# Installation:
+# * Install this script directly in git core path: `git --exec-path`
+# * OR install it to ~/.local/bin and add the following alias:
+#   `git config --global alias.upsub '!upsub() { ~/.local/bin/git-upsub "$@"; }; upsub'`
 
 if [ $# -eq 0 ]; then
   set -- --help
