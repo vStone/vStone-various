@@ -61,8 +61,7 @@ commit_modules() {
   fi;
   local tmpfile=`mktemp -t git-submodule-commit.XXXXXXX` || exit 1;
   local cmd="$( [ $edit -eq 1 ] && echo '--edit' || echo '' )";
-  local mstr=$( [ $mcount -gt 1 ] && echo "${mcount} submodules:" || echo 'submodule' );
-  echo -e "Updated ${mstr} ${modules[@]}\n\n\n" > $tmpfile
+  echo -e "chore(module): Updated ${modules[@]}\n\n\n" > $tmpfile
   git submodule summary --cached >> $tmpfile
   git commit $cmd -F $tmpfile
   local ex=$?
