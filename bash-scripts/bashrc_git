@@ -14,7 +14,7 @@ __git_ps1_remotes() {
   local printa="${3:-%s}"
   local printn="${4}"
   local p="";
-  if [ -n "$g" ]; then
+  if [[ -n "$g" && -d "$g" ]]; then
     local remotes="$(git remote)";
     local b="$(git symbolic-ref HEAD 2>/dev/null)";
     if [[ -z $b ]]; then
